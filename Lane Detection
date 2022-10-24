@@ -1,0 +1,36 @@
+#Lane Detection using Computer Vision.
+import cv2
+import numpy as np
+
+def canny(image):
+    gray_scale = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)           # convert the color from RGB channel to GRAY chanel
+    blur = cv2.GaussianBlur(gray_scale,(5,5),0)                    # Using the convolution process to filter out the noise using kernels
+    canny = cv2.Canny(blur,50,150)                       # Edge detection using Canny which calculates the gradient of the adjacent pixels
+    return canny
+
+def interest(image):
+    y = image.shape[0]
+    polygon = np.array([[(200,y),(1100,y),(550,250)]])
+    region = np.zeros_like(image)
+    cv2.fillPoly(region,polygon,(255))
+    blacked = cv2.bitwise_and(image, region) 
+    return blacked
+
+def show_in_real_img(image, lines):
+    real_line = np.zeros_like(image)
+    if lines is not None:
+        for i in lines:
+            x1,y1,x2,y2 = i.reshape(4)
+            cv2.line(real_line,(x1,y1),(x2,y2),(0,255,0),10)
+    return real_line
+
+
+image = cv2.imread("C:\\Users\\shahv\\Image\\test_image.jpg")      # reading the image
+lane = np.copy(image)                                              # copy of an image
+image_canny = canny(lane)
+crop = interest(image_canny)
+lines = cv2.HoughLinesP(crop,2, np.pi/180,100, np.array([]), minLineLength = 50, maxLineGap = 5)    # HoughTransformation                                       
+real_line =  show_in_real_img(lane,lines)
+both_image = cv2.addWeighted(lane,0.8,real_line,1,1)
+cv2.imshow('result',both_image)                                                                           # Plots the image result in the different window 
+cv2.waitKey(0)
